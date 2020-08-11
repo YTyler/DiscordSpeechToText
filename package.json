@@ -1,8 +1,13 @@
 {
     "name": "speech-bot",
-    "version":"1.0.0",
+    "version": "1.0.0",
     "description": "Discord speech to text bot",
     "main": "bot.js",
+    "repository": "https://github.com/YTyler/DiscordSpeechToText",
+    "license": "MIT",
     "author": "Tyler Yates",
-    "dependencies": {}
+    "dependencies": {
+        "discord.io": "^2.5.3",
+        "winston": "^3.3.3"
+    }
 }
