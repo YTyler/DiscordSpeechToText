@@ -1,0 +1,3 @@
+Discord bot to transcribe audio.
+
+Instructions to come...
