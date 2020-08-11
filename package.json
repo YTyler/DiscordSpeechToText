@@ -1,0 +1,8 @@
+{
+    "name": "speech-bot",
+    "version":"1.0.0",
+    "description": "Discord speech to text bot",
+    "main": "bot.js",
+    "author": "Tyler Yates",
+    "dependencies": {}
+}
