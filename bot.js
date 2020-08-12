@@ -102,8 +102,10 @@ function thenJoinVoiceChannel(conn) {
                   .map(result => result.alternatives[0].transcript)
                   .join('\n')
                   .toLowerCase()
-                console.log(`Transcription: ${transcription}`)
+                  //conn.channel.send(`${transcription}`)
+                //console.log(`Transcription: ${transcription}`)
               })
+
 
             const convertTo1ChannelStream = new ConvertTo1ChannelStream()
 
@@ -141,11 +143,10 @@ bot.once('ready', () => {
 //Bot Joins Voice Channel of User upon any message
 bot.on('message', async message => {
 	// Join the same voice channel of the author of the message
-	if (message.member.voice.channel) {
-    if (message.content === 'Join') {
+	if (message.member.voice.channel && message.content === 'Join') {
 		const connection = await message.member.voice.channel.join();
+    message.channel.send(`boop`);
     thenJoinVoiceChannel(connection);
-  }
 	}
 /*  // Detects speech in the audio file
   const [response] = await client.recognize(request);
