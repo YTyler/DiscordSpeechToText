@@ -5,12 +5,36 @@ const fs = require('fs');
 let dispatcher;
 // Imports the Google Cloud client library
 const speech = require('@google-cloud/speech');
+const googleSpeech = require('@google-cloud/speech')
 // Creates a client
 const client = new speech.SpeechClient();
+const googleSpeechClient = new googleSpeech.SpeechClient()
 const encoding = 'LINEAR16';
-const sampleRateHertz = 16000;
+const sampleRateHertz = 48000;
 const languageCode = 'en-US';
 let filename = 'test.pcm';
+const { Transform } = require('stream')
+
+function convertBufferTo1Channel(buffer) {
+  const convertedBuffer = Buffer.alloc(buffer.length / 2)
+
+  for (let i = 0; i < convertedBuffer.length / 2; i++) {
+    const uint16 = buffer.readUInt16LE(i * 4)
+    convertedBuffer.writeUInt16LE(uint16, i * 2)
+  }
+
+  return convertedBuffer
+}
+
+class ConvertTo1ChannelStream extends Transform {
+  constructor(source, options) {
+    super(options)
+  }
+
+  _transform(data, encoding, next) {
+    next(null, convertBufferTo1Channel(data))
+  }
+}
 const config = {
     encoding: encoding,
     sampleRateHertz: sampleRateHertz,
@@ -23,7 +47,6 @@ const audio = {
 
 const request = {
   config: config,
-  audio: audio,
 };
 
 // make a new stream for each time someone starts to talk
@@ -69,10 +92,28 @@ function thenJoinVoiceChannel(conn) {
             // console.log(`Scribe: CONN ${conn}`, conn);
             console.log(`Scribe: SPEAKING`, speaking);
             // this creates a 16-bit signed PCM, stereo 48KHz PCM stream.
+            //const audioStream = receiver.createStream(user, { mode: 'pcm' });
             const audioStream = receiver.createStream(user, { mode: 'pcm' });
-            //const audioStream = receiver.createStream(user, { mode: 'opus' });
+            const recognizeStream = googleSpeechClient
+              .streamingRecognize(request)
+              .on('error', console.error)
+              .on('data', response => {
+                const transcription = response.results
+                  .map(result => result.alternatives[0].transcript)
+                  .join('\n')
+                  .toLowerCase()
+                console.log(`Transcription: ${transcription}`)
+              })
+
+            const convertTo1ChannelStream = new ConvertTo1ChannelStream()
+
+            audioStream.pipe(convertTo1ChannelStream).pipe(recognizeStream)
+
+            audioStream.on('end', async () => {
+              console.log('audioStream end')
+            })
             // create an output stream so we can dump our data in a file
-            const outputStream = generateOutputFile(conn.channel, user);
+            /*const outputStream = generateOutputFile(conn.channel, user);
             // pipe our audio data into the file stream
             //audioStream.on('data', (chunk) => {
             //    console.log(`Scribe: Received ${chunk.length} bytes of data.`);
@@ -84,7 +125,7 @@ function thenJoinVoiceChannel(conn) {
             audioStream.on('end', () => {
                 //msg.channel.sendMessage(`I'm no longer listening to ${user}`);
                 console.log(`Scribe: stop listening to ${user.username}`);
-            });
+            });*/
         }
     });
 }
@@ -96,24 +137,7 @@ bot.login(configBot.botToken);
 bot.once('ready', () => {
     console.log("Ready for Disco \n♪♪\\('O')/♪♪");
 });
-//Test Bot Works
-bot.on('message', message => {
-    if (message.content.startsWith(`${prefix}ping`)) {
-        message.channel.send('pong');
-    } else if (message.content.startsWith(`${prefix}beep`)) {
-        message.channel.send('boop');
-    }
-    else if (message.content.startsWith(`${prefix}server`)) {
-        message.channel.send(
-            `Server Details
-            Name: ${message.guild.name}
-            Description: ${message.guild.description ? message.guild.description : 'No Description' }
-            Total Members: ${message.guild.memberCount}
-            Date Created: ${message.guild.createdAt}
-            Region: ${message.guild.region}`
-        );
-    }
-});
+
 //Bot Joins Voice Channel of User upon any message
 bot.on('message', async message => {
 	// Join the same voice channel of the author of the message
@@ -123,10 +147,10 @@ bot.on('message', async message => {
     thenJoinVoiceChannel(connection);
   }
 	}
-  // Detects speech in the audio file
+/*  // Detects speech in the audio file
   const [response] = await client.recognize(request);
   const transcription = response.results
     .map(result => result.alternatives[0].transcript)
     .join('\n');
-  console.log('Transcription: ', transcription);
+  console.log('Transcription: ', transcription);*/
 });
