@@ -1,3 +1,10 @@
-Discord bot to transcribe audio.
+# DiscoSpeech (Working Title)
 
-Instructions to come...
+## Setup
+
+* Install FFmpeg
+* Navigate to desired directory
+* Clone Project
+`git clone https://github.com/YTyler/DiscordSpeechToText.git`
+* install dependencies
+`npm install`
