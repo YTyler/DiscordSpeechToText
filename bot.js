@@ -8,11 +8,12 @@ const speech = require('@google-cloud/speech');
 const googleSpeech = require('@google-cloud/speech')
 // Creates a client
 const client = new speech.SpeechClient();
-const googleSpeechClient = new googleSpeech.SpeechClient()
+const googleSpeechClient = new googleSpeech.SpeechClient();
 const encoding = 'LINEAR16';
 const sampleRateHertz = 48000;
 const languageCode = 'en-US';
 let filename = 'test.pcm';
+var channelID;
 const { Transform } = require('stream')
 
 function convertBufferTo1Channel(buffer) {
@@ -83,16 +84,10 @@ function thenJoinVoiceChannel(conn) {
     });
 
     conn.on('speaking', (user, speaking) => {
-        console.log('Scribe: Current Members: ', conn.channel.members.size);
-        console.log('Scribe: speaking: ', speaking);
+        //console.log('Scribe: Current Members: ', conn.channel.members.size);
+        //console.log('Scribe: speaking: ', speaking);
 
         if (speaking.has('SPEAKING')) {
-            //msg.channel.sendMessage(`I'm listening to ${user}`);
-            console.log(`Scribe: listening to ${user.username}`);
-            // console.log(`Scribe: CONN ${conn}`, conn);
-            console.log(`Scribe: SPEAKING`, speaking);
-            // this creates a 16-bit signed PCM, stereo 48KHz PCM stream.
-            //const audioStream = receiver.createStream(user, { mode: 'pcm' });
             const audioStream = receiver.createStream(user, { mode: 'pcm' });
             const recognizeStream = googleSpeechClient
               .streamingRecognize(request)
@@ -102,8 +97,10 @@ function thenJoinVoiceChannel(conn) {
                   .map(result => result.alternatives[0].transcript)
                   .join('\n')
                   .toLowerCase()
-                  //conn.channel.send(`${transcription}`)
-                //console.log(`Transcription: ${transcription}`)
+                textchannel.send(`Transcription: ${transcription}`);
+                //const channel = conn.guild.channels.find(channel => channel.name==="general")
+                //console.log(textchannel)
+                channelID.TextChannel.send('hello!');
               })
 
 
@@ -112,26 +109,11 @@ function thenJoinVoiceChannel(conn) {
             audioStream.pipe(convertTo1ChannelStream).pipe(recognizeStream)
 
             audioStream.on('end', async () => {
-              console.log('audioStream end')
+              //console.log('audioStream end')
             })
-            // create an output stream so we can dump our data in a file
-            /*const outputStream = generateOutputFile(conn.channel, user);
-            // pipe our audio data into the file stream
-            //audioStream.on('data', (chunk) => {
-            //    console.log(`Scribe: Received ${chunk.length} bytes of data.`);
-            //});
-            filename = outputStream;
-            audioStream.pipe(outputStream);
-            outputStream.on("data", console.log);
-            // when the stream ends (the user stopped talking) tell the user
-            audioStream.on('end', () => {
-                //msg.channel.sendMessage(`I'm no longer listening to ${user}`);
-                console.log(`Scribe: stop listening to ${user.username}`);
-            });*/
         }
     });
 }
-
 
 // Initialize Discord Bot
 const bot = new Discord.Client();
@@ -142,16 +124,12 @@ bot.once('ready', () => {
 
 //Bot Joins Voice Channel of User upon any message
 bot.on('message', async message => {
+  channelID = message.channel.id;
 	// Join the same voice channel of the author of the message
 	if (message.member.voice.channel && message.content === 'Join') {
 		const connection = await message.member.voice.channel.join();
     message.channel.send(`boop`);
+    message.channel.send(channelID);
     thenJoinVoiceChannel(connection);
 	}
-/*  // Detects speech in the audio file
-  const [response] = await client.recognize(request);
-  const transcription = response.results
-    .map(result => result.alternatives[0].transcript)
-    .join('\n');
-  console.log('Transcription: ', transcription);*/
 });
