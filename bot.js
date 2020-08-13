@@ -13,8 +13,9 @@ const encoding = 'LINEAR16';
 const sampleRateHertz = 48000;
 const languageCode = 'en-US';
 let filename = 'test.pcm';
-var channelID;
 const { Transform } = require('stream')
+
+var textchannel;
 
 function convertBufferTo1Channel(buffer) {
   const convertedBuffer = Buffer.alloc(buffer.length / 2)
@@ -50,12 +51,12 @@ const request = {
   config: config,
 };
 
-// make a new stream for each time someone starts to talk
+/*// make a new stream for each time someone starts to talk
 function generateOutputFile(channel, member) {
     const fileName = `${member.username}-${Date.now()}.pcm`;
     console.log(fileName);
     return fs.createWriteStream(fileName);
-}
+}*/
 
 function thenJoinVoiceChannel(conn) {
     //console.log(`Scribe: ready: ${conn.channel.name}!`);
@@ -97,10 +98,7 @@ function thenJoinVoiceChannel(conn) {
                   .map(result => result.alternatives[0].transcript)
                   .join('\n')
                   .toLowerCase()
-                textchannel.send(`Transcription: ${transcription}`);
-                //const channel = conn.guild.channels.find(channel => channel.name==="general")
-                //console.log(textchannel)
-                channelID.TextChannel.send('hello!');
+                textchannel.channel.send(`${user.username} said: "${transcription}"`);
               })
 
 
@@ -124,12 +122,12 @@ bot.once('ready', () => {
 
 //Bot Joins Voice Channel of User upon any message
 bot.on('message', async message => {
-  channelID = message.channel.id;
+  textchannel = message;
 	// Join the same voice channel of the author of the message
 	if (message.member.voice.channel && message.content === 'Join') {
 		const connection = await message.member.voice.channel.join();
-    message.channel.send(`boop`);
-    message.channel.send(channelID);
+    //message.channel.send(bot.Channel);
+    textchannel.channel.send('BOOP!');
     thenJoinVoiceChannel(connection);
 	}
 });
