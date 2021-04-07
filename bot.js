@@ -90,7 +90,7 @@ function thenJoinVoiceChannel(conn) { //should change name of this function for 
 const bot = new Discord.Client();
 bot.login(configBot.botToken);
 bot.once('ready', () => {
-  console.log("Ready for Disco \n♪♪\\('O')/♪♪");
+  console.log("Ready for Disco \n♪♪ \\('O')/ ♪♪");
 });
 
 //Bot Joins Voice Channel of User upon 'Join'  message
