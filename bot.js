@@ -39,7 +39,7 @@ class ConvertTo1ChannelStream extends Transform {
 }
 
 
-//Main Function
+//Main Transcription Function
 function thenJoinVoiceChannel(conn) { //should change name of this function for clarity
   // create our voice receiver
   const receiver = conn.receiver;
@@ -90,7 +90,7 @@ function thenJoinVoiceChannel(conn) { //should change name of this function for 
 const bot = new Discord.Client();
 bot.login(configBot.botToken);
 bot.once('ready', () => {
-  console.log("Ready for Disco \n♪♪ \\('O')/ ♪♪");
+  console.log("Ready for Disco \n\n♪♪ \\('O')/ ♪♪");
 });
 
 //Bot Joins Voice Channel of User upon 'Join'  message
@@ -99,7 +99,7 @@ bot.on('message', async message => {
   // Join the same voice channel of the author of the message
   if (message.member.voice.channel && message.content === 'Join') {
     const connection = await message.member.voice.channel.join();
-    textchannel.channel.send('BOOP!');
+    textchannel.channel.send('Scribe has arrived!');
     thenJoinVoiceChannel(connection);
   }
 });
