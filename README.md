@@ -8,3 +8,4 @@
 `git clone https://github.com/YTyler/DiscordSpeechToText.git`
 * install dependencies
 `npm install`
+* run `node bot.js` to serve the bot
