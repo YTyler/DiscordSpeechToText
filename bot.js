@@ -6,7 +6,8 @@ const googleSpeech = require('@google-cloud/speech')
 // Creates a client
 const googleSpeechClient = new googleSpeech.SpeechClient();
 const { Transform } = require('stream')
-var textchannel;
+let textchannel;
+
 const config = {
   encoding: 'LINEAR16',
   sampleRateHertz: 48000,
@@ -17,6 +18,7 @@ const request = {
 };
 
 //Stream Conversion Functions
+//convert a stereo audio input to a mono output
 function convertBufferTo1Channel(buffer) {
   const convertedBuffer = Buffer.alloc(buffer.length / 2)
 
@@ -95,9 +97,9 @@ bot.once('ready', () => {
 
 //Bot Joins Voice Channel of User upon 'Join'  message
 bot.on('message', async message => {
-  textchannel = message;
   // Join the same voice channel of the author of the message
   if (message.member.voice.channel && message.content === 'Join') {
+    textchannel = message;
     const connection = await message.member.voice.channel.join();
     textchannel.channel.send('Scribe has arrived!');
     thenJoinVoiceChannel(connection);
