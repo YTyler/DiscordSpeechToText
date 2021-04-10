@@ -1,4 +1,3 @@
-//--------------------------------- VARIABLES
 const Discord = require('discord.js');
 const configBot = require('./config.json')
 let dispatcher;
@@ -7,7 +6,8 @@ const googleSpeech = require('@google-cloud/speech')
 // Creates a client
 const googleSpeechClient = new googleSpeech.SpeechClient();
 const { Transform } = require('stream')
-var textchannel;
+let textchannel;
+
 const config = {
   encoding: 'LINEAR16',
   sampleRateHertz: 48000,
@@ -17,7 +17,8 @@ const request = {
   config: config,
 };
 
-//--------------------------------- FUNCTIONS & CLASSES
+//Stream Conversion Functions
+//convert a stereo audio input to a mono output
 function convertBufferTo1Channel(buffer) {
   const convertedBuffer = Buffer.alloc(buffer.length / 2)
 
@@ -39,13 +40,17 @@ class ConvertTo1ChannelStream extends Transform {
   }
 }
 
-function thenJoinVoiceChannel(conn) {
+
+//Main Transcription Function
+function thenJoinVoiceChannel(conn) { //should change name of this function for clarity
   // create our voice receiver
   const receiver = conn.receiver;
 
   // Must play a sound over the channel first otherwise incoming voice data is empty
   console.log('Scribe: Play join.mp3...');
   dispatcher = conn.play('join.mp3', { passes: 5 });
+  
+  //log status of dispatcher connection attempts
   dispatcher.on('start', () => {
     console.log('Scribe: Play Starting...');
   });
@@ -61,6 +66,8 @@ function thenJoinVoiceChannel(conn) {
   conn.on('failed', (error) => {
     console.log("conn Fail!", error);
   });
+
+  //Transcription
   conn.on('speaking', (user, speaking) => {
     if (speaking.has('SPEAKING')) {
       const audioStream = receiver.createStream(user, { mode: 'pcm' });
@@ -85,16 +92,16 @@ function thenJoinVoiceChannel(conn) {
 const bot = new Discord.Client();
 bot.login(configBot.botToken);
 bot.once('ready', () => {
-  console.log("Ready for Disco \n♪♪\\('O')/♪♪");
+  console.log("Ready for Disco \n\n♪♪ \\('O')/ ♪♪");
 });
 
-//Bot Joins Voice Channel of User upon any message
+//Bot Joins Voice Channel of User upon 'Join'  message
 bot.on('message', async message => {
-  textchannel = message;
   // Join the same voice channel of the author of the message
   if (message.member.voice.channel && message.content === 'Join') {
+    textchannel = message;
     const connection = await message.member.voice.channel.join();
-    textchannel.channel.send('BOOP!');
+    textchannel.channel.send('Scribe has arrived!');
     thenJoinVoiceChannel(connection);
   }
 });
