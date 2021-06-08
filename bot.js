@@ -1,12 +1,7 @@
 const Discord = require('discord.js');
 const configBot = require('./config.json')
-let dispatcher;
-// Imports the Google Cloud client library
-const googleSpeech = require('@google-cloud/speech')
-// Creates a client
-const googleSpeechClient = new googleSpeech.SpeechClient();
-const { Transform } = require('stream')
-let textchannel;
+let dispatcher = null;
+let textchannel = null;
 
 const config = {
   encoding: 'LINEAR16',
@@ -17,32 +12,9 @@ const request = {
   config: config,
 };
 
-//Stream Conversion Functions
-//convert a stereo audio input to a mono output
-function convertBufferTo1Channel(buffer) {
-  const convertedBuffer = Buffer.alloc(buffer.length / 2)
-
-  for (let i = 0; i < convertedBuffer.length / 2; i++) {
-    const uint16 = buffer.readUInt16LE(i * 4)
-    convertedBuffer.writeUInt16LE(uint16, i * 2)
-  }
-
-  return convertedBuffer
-}
-
-class ConvertTo1ChannelStream extends Transform {
-  constructor(source, options) {
-    super(options)
-  }
-
-  _transform(data, encoding, next) {
-    next(null, convertBufferTo1Channel(data))
-  }
-}
-
 
 //Main Transcription Function
-function thenJoinVoiceChannel(conn) { //should change name of this function for clarity
+function connectTranscribe(conn) { //should change name of this function for clarity
   // create our voice receiver
   const receiver = conn.receiver;
 
@@ -71,19 +43,7 @@ function thenJoinVoiceChannel(conn) { //should change name of this function for 
   conn.on('speaking', (user, speaking) => {
     if (speaking.has('SPEAKING')) {
       const audioStream = receiver.createStream(user, { mode: 'pcm' });
-      const recognizeStream = googleSpeechClient
-        .streamingRecognize(request)
-        .on('error', console.error)
-        .on('data', response => {
-          const transcription = response.results
-            .map(result => result.alternatives[0].transcript)
-            .join('\n')
-          textchannel.channel.send(`${user.username} said: "${transcription}"`);
-        })
-
-      const convertTo1ChannelStream = new ConvertTo1ChannelStream()
-
-      audioStream.pipe(convertTo1ChannelStream).pipe(recognizeStream)
+      textchannel.send('speech detected');
     }
   });
 }
@@ -99,9 +59,10 @@ bot.once('ready', () => {
 bot.on('message', async message => {
   // Join the same voice channel of the author of the message
   if (message.member.voice.channel && message.content === 'Join') {
-    textchannel = message;
+    textchannel = message.channel;
     const connection = await message.member.voice.channel.join();
-    textchannel.channel.send('Scribe has arrived!');
-    thenJoinVoiceChannel(connection);
+    textchannel.send('Scribe has arrived!');
+    textchannel.send(texchannel);
+    connectTranscribe(connection);
   }
 });
