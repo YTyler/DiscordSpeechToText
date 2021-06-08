@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const configBot = require('./config.json')
-let dispatcher = null;
-let textchannel = null;
+let dispatcher
+let textchannel
 
 const config = {
   encoding: 'LINEAR16',
@@ -62,7 +62,7 @@ bot.on('message', async message => {
     textchannel = message.channel;
     const connection = await message.member.voice.channel.join();
     textchannel.send('Scribe has arrived!');
-    textchannel.send(texchannel);
+    textchannel.send(textchannel);
     connectTranscribe(connection);
   }
 });
